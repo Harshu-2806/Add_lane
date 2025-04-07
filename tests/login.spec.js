@@ -4,14 +4,14 @@ test('Login and Navigate to Add Lane', async ({ browser }) => {
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    console.log("🔄 Opening Login Page...");
+    console.log("   Opening Login Page...");
     await page.goto('https://id.dev.skymind.com/realms/secure-test/protocol/openid-connect/auth?client_id=webapp');
 
-    console.log("🔄 Entering Credentials...");
+    console.log(" Entering Credentials...");
     await page.fill('input[name="username"], input[type="email"]', 'harsha@test.com');
     await page.fill('input[name="password"], input[type="password"]', 'Harshali@123');
 
-    console.log("🔄 Clicking Login...");
+    console.log(" Clicking Login...");
     await Promise.all([
         page.click('button[type="submit"], input[type="submit"]'),
         page.waitForURL('https://cloud.test.skymind.com', { timeout: 90000 }) // Wait for dashboard URL
