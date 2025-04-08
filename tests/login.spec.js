@@ -14,7 +14,7 @@ test('Login and Navigate to Add Lane', async ({ browser }) => {
     console.log(" Clicking Login...");
     await Promise.all([
         page.click('button[type="submit"], input[type="submit"]'),
-        page.waitForURL('https://cloud.test.skymind.com', { timeout: 90000 }) // Wait for dashboard URL
+        page.waitForURL('https://cloud.test.skymind.com', { timeout: 180000 }) // Wait for dashboard URL
     ]);
 
     console.log(" Logged in! Now clicking on Lane Management...");

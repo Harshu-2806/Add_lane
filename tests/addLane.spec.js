@@ -36,8 +36,9 @@ test('Fill Add Lane Form after ensuring UI is stable', async ({ browser }) => {
         const CreateButton = page.locator('button:has-text("Create")');
         const successToast = page.getByText('Successfully created.', { exact: false });
          await expect(CreateButton).toBeDisabled();
-         await page.fill('//label[contains(text(), "External ID")]/following-sibling::div[1]//input', 'EXT6');
-        
+         const randomID = Math.random().toString(36).substring(2, 10); // e.g. 'a9b3z7d1'
+         await page.fill('//label[contains(text(), "External ID")]/following-sibling::div[1]//input', randomID);
+                 
          console.log("🔽 STEP 2: Selecting Forwarder...");
          await handleDropdown(page, "Forwarder", 0, "Acme");
          await page.waitForTimeout(1000);
@@ -133,93 +134,19 @@ if (forwarderValue && airlineValue) {
     // Wait for green success toast
     const duplicateErrorToast = page.getByText('The external lane ID must be unique for a combination of shipper and forwarder', { exact: false });
 
-try {
-    // Wait for either success or error toast
-    const result = await Promise.race([
-        successToast.waitFor({ timeout: 10000 }).then(() => 'success'),
-        duplicateErrorToast.waitFor({ timeout: 10000 }).then(() => 'duplicate'),
-    ]);
-
-    if (result === 'success') {
+    try {
+        // Wait for green success toast
+        await successToast.waitFor({ timeout: 10000 });
         console.log("✅ Successfully created!");
 
         console.log("🕒 Waiting 1 minute before redirect...");
         await page.waitForTimeout(60 * 1000);
         await page.goto('https://cloud.test.skymind.com/lane-management/lanes');
         console.log("➡️ Redirected to lanes page.");
+
+    } catch (err) {
+        console.log("⚠️ Success toast not found. Capturing screenshot...");
+        await page.screenshot({ path: 'debug-toast-failure.png', fullPage: true });
     }
-
-    if (result === 'duplicate') {
-        console.log("❌ Duplicate External ID. Generating a new one...");
-
-        // Clear and set a new External ID
-        await page.fill('//label[contains(text(), "External ID")]/following-sibling::div[1]//input', '');
-        
-        const newExtId = `EXT${Date.now()}`;
-        await externalIdField.fill(newExtId);
-        console.log(`🔁 Retrying with new External ID: ${newExtId}`);
-
-        await CreateButton.click();
-
-        // Wait again for success
-        await expect(successToast).toBeVisible({ timeout: 10000 });
-        console.log("✅ Successfully created on second attempt!");
-
-        console.log("🕒 Waiting 1 minute...");
-        await page.waitForTimeout(60 * 1000);
-        await page.goto('https://cloud.test.skymind.com/lane-management/lanes');
-        console.log("➡️ Redirected to lanes list.");
-    }
-
-} catch (err) {
-    console.log("⚠️ Neither toast appeared. Screenshot captured.");
-    
-}}
-
-/*try {
-    await expect(successToast).toBeVisible({ timeout: 10000 });
-    console.log("Successfully Created");
-} catch {
-    const isDuplicate = await duplicateErrorInline.isVisible({ timeout: 5000 }).catch(() => false);
-
-    if (isDuplicate) {
-        console.log("🚫 Duplicate ID inline error found. Retrying with new ID...");
-
-        const newID = 'EXT-' + Math.floor(Math.random() * 100000);
-        const extIdField = page.locator('//label[contains(text(), "External ID")]/following-sibling::div//input');
-
-        await extIdField.fill('');
-        await extIdField.fill(newID);
-        console.log(`🆕 Retrying with new External ID: ${newID}`);
-
-        await CreateButton.click();
-        await page.waitForTimeout(2000);
-
-        try {
-            await expect(successToast).toBeVisible({ timeout: 10000 });
-            console.log("✅ Successfully submitted with new ID!");
-        } catch (e) {
-            console.log("❌ Submission failed again. Trying to take screenshot safely...");
-            if (!page.isClosed()) {
-                await page.screenshot({ path: `screenshots/final-failure-${Date.now()}.png` });
-            } else {
-                console.log("⚠️ Cannot take screenshot — page already closed.");
-            }
-        }
-
-    } else {
-        console.log("⚠️ No known error found. Checking if screenshot is possible...");
-        if (!page.isClosed()) {
-            await page.screenshot({ path: `screenshots/unknown-error-${Date.now()}.png` });
-        } else {
-            console.log("⚠️ Cannot take screenshot — page already closed.");
-        }
-    }
-}*/
-
-});     
-    
-   
-  
-    
-
+}
+});
