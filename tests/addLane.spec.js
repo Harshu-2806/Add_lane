@@ -115,8 +115,6 @@ async function handleDropdown(page, labelText, fallbackIndex = 0, optionText = "
     }
 }
 
-
-
 // Check if Forwarder and Airline have values filled in
 const forwarderInput = await page.locator('//label[contains(text(), "Forwarder")]/following-sibling::div//input');
 const airlineInput = await page.locator('//label[contains(text(), "Airline")]/following-sibling::div//input');
