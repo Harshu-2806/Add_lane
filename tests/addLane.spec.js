@@ -38,6 +38,7 @@ test('Fill Add Lane Form after ensuring UI is stable', async ({ browser }) => {
          await expect(CreateButton).toBeDisabled();
          const randomID = Math.random().toString(36).substring(2, 10); // e.g. 'a9b3z7d1'
          await page.fill('//label[contains(text(), "External ID")]/following-sibling::div[1]//input', randomID);
+
                  
          console.log("🔽 STEP 2: Selecting Forwarder...");
          await handleDropdown(page, "Forwarder", 0, "Acme");
@@ -131,22 +132,39 @@ if (forwarderValue && airlineValue) {
     console.log("✅ Both dropdowns filled. Clicking Create...");
     await CreateButton.click();
     
-    // Wait for green success toast
-    const duplicateErrorToast = page.getByText('The external lane ID must be unique for a combination of shipper and forwarder', { exact: false });
-
+    
     try {
-        // Wait for green success toast
+        // Wait for success toast
         await successToast.waitFor({ timeout: 10000 });
         console.log("✅ Successfully created!");
-
-        console.log("🕒 Waiting 1 minute before redirect...");
-        await page.waitForTimeout(60 * 1000);
-        await page.goto('https://cloud.test.skymind.com/lane-management/lanes');
-        console.log("➡️ Redirected to lanes page.");
-
+    
     } catch (err) {
-        console.log("⚠️ Success toast not found. Capturing screenshot...");
-        await page.screenshot({ path: 'debug-toast-failure.png', fullPage: true });
+        console.log("⚠️ Success toast not found. Checking for duplicate External ID...");
+    
+        const duplicateError = await page.$('div.MuiAlert-message:has-text("must be unique")');
+        if (duplicateError) {
+            console.log("🚫 Duplicate External Lane ID detected.");
+    
+            // Clear the existing External ID
+            const externalIdXPath = '//label[contains(text(), "External ID")]/following-sibling::div[1]//input';
+            await page.fill(externalIdXPath, '');
+    
+            // Generate new ID and fill
+            const newId = Math.floor(1000 + Math.random() * 9000).toString();
+            await page.fill(externalIdXPath, newId);
+            console.log(`🔁 Retrying with new External ID: ${newId}`);
+    
+            // Click Create button again
+            await page.click('button:has-text("Create")');
+    
+            // Wait for toast again
+            await successToast.waitFor({ timeout: 10000 });
+            console.log("✅ Successfully created after retry!");
+        } else {
+            console.log("📸 Unexpected error ");
+           
+        }
     }
-}
+}    
+    
 });
