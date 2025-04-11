@@ -5,8 +5,12 @@ test('Login and Navigate to Add Lane', async ({ browser }) => {
     const page = await context.newPage();
 
     console.log("   Opening Login Page...");
+    console.log("🔄 Opening Login Page...");
     await page.goto('https://id.dev.skymind.com/realms/secure-test/protocol/openid-connect/auth?client_id=webapp');
 
+
+    await page.waitForSelector('text=Back to Application', { timeout: 90000 });
+    await page.click('text=Back to Application');
     console.log(" Entering Credentials...");
     await page.fill('input[name="username"], input[type="email"]', 'harsha@test.com');
     await page.fill('input[name="password"], input[type="password"]', 'Harshali@123');
